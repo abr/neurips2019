@@ -6,7 +6,7 @@ the cell structure, differential equation, and gating.
 import numpy as np
 
 from tensorflow.keras import backend as K
-from tensorflow.keras import activations, initializers
+from tensorflow.keras import activations, initializers, regularizers
 from tensorflow.keras.initializers import Constant, Initializer
 from tensorflow.keras.initializers import (
     Identity as ID,
@@ -149,7 +149,15 @@ class LMUCell(Layer):
         input_kernel_initializer="glorot_normal",
         hidden_kernel_initializer="glorot_normal",
         memory_kernel_initializer="glorot_normal",
+        input_encoders_regularizer=None,
+        hidden_encoders_regularizer=None,
+        memory_encoders_regularizer=None,
+        input_kernel_regularizer=None,
+        hidden_kernel_regularizer=None,
+        memory_kernel_regularizer=None,
         hidden_activation="tanh",
+        include_bias=False,
+        bias_regularizer=None,
         **kwargs
     ):
         super().__init__(**kwargs)
@@ -176,7 +184,17 @@ class LMUCell(Layer):
         self.hidden_kernel_initializer = initializers.get(hidden_kernel_initializer)
         self.memory_kernel_initializer = initializers.get(memory_kernel_initializer)
 
+        self.input_encoders_regularizer = regularizers.get(input_encoders_regularizer)
+        self.hidden_encoders_regularizer = regularizers.get(hidden_encoders_regularizer)
+        self.memory_encoders_regularizer = regularizers.get(memory_encoders_regularizer)
+        self.input_kernel_regularizer = regularizers.get(input_kernel_regularizer)
+        self.hidden_kernel_regularizer = regularizers.get(hidden_kernel_regularizer)
+        self.memory_kernel_regularizer = regularizers.get(memory_kernel_regularizer)
+        self.bias_regularizer = regularizers.get(bias_regularizer)
+
         self.hidden_activation = activations.get(hidden_activation)
+
+        self.include_bias = include_bias
 
         self._realizer_result = realizer(factory(theta=theta, order=self.order))
         self._ss = cont2discrete(
@@ -222,6 +240,7 @@ class LMUCell(Layer):
             name="input_encoders",
             shape=(input_dim, 1),
             initializer=self.input_encoders_initializer,
+            regularizer=self.input_encoders_regularizer,
             trainable=self.trainable_input_encoders,
         )
 
@@ -229,6 +248,7 @@ class LMUCell(Layer):
             name="hidden_encoders",
             shape=(self.units, 1),
             initializer=self.hidden_encoders_initializer,
+            regularizer=self.hidden_encoders_regularizer,
             trainable=self.trainable_hidden_encoders,
         )
 
@@ -236,6 +256,7 @@ class LMUCell(Layer):
             name="memory_encoders",
             shape=(self.order, 1),
             initializer=self.memory_encoders_initializer,
+            regularizer=self.memory_encoders_regularizer,
             trainable=self.trainable_memory_encoders,
         )
 
@@ -243,6 +264,7 @@ class LMUCell(Layer):
             name="input_kernel",
             shape=(input_dim, self.units),
             initializer=self.input_kernel_initializer,
+            regularizer=self.input_kernel_regularizer,
             trainable=self.trainable_input_kernel,
         )
 
@@ -250,6 +272,7 @@ class LMUCell(Layer):
             name="hidden_kernel",
             shape=(self.units, self.units),
             initializer=self.hidden_kernel_initializer,
+            regularizer=self.hidden_kernel_regularizer,
             trainable=self.trainable_hidden_kernel,
         )
 
@@ -257,8 +280,18 @@ class LMUCell(Layer):
             name="memory_kernel",
             shape=(self.order, self.units),
             initializer=self.memory_kernel_initializer,
+            regularizer=self.memory_kernel_regularizer,
             trainable=self.trainable_memory_kernel,
         )
+
+        if self.include_bias:
+            self.bias = self.add_weight(
+                name="bias",
+                shape=(1, self.units),
+                initializer=Constant(0),
+                regularizer=self.bias_regularizer,
+                trainable=True,
+            )
 
         self.AT = self.add_weight(
             name="AT",
@@ -296,6 +329,9 @@ class LMUCell(Layer):
             K.dot(inputs, self.input_kernel)
             + K.dot(h, self.hidden_kernel)
             + K.dot(m, self.memory_kernel)
+            + self.bias
+            if self.include_bias
+            else 0
         )
 
         return h, [h, m]
@@ -322,13 +358,21 @@ class LMUCell(Layer):
                 trainable_memory_kernel=self.trainable_memory_kernel,
                 trainable_A=self.trainable_A,
                 trainable_B=self.trainable_B,
-                input_encorders_initializer=self.input_encoders_initializer,
+                input_encoders_initializer=self.input_encoders_initializer,
                 hidden_encoders_initializer=self.hidden_encoders_initializer,
                 memory_encoders_initializer=self.memory_encoders_initializer,
                 input_kernel_initializer=self.input_kernel_initializer,
                 hidden_kernel_initializer=self.hidden_kernel_initializer,
                 memory_kernel_initializer=self.memory_kernel_initializer,
+                input_encoders_regularizer=self.input_encoders_regularizer,
+                hidden_encoders_regularizer=self.hidden_encoders_regularizer,
+                memory_encoders_regularizer=self.memory_encoders_regularizer,
+                input_kernel_regularizer=self.input_kernel_regularizer,
+                hidden_kernel_regularizer=self.hidden_kernel_regularizer,
+                memory_kernel_regularizer=self.memory_kernel_regularizer,
                 hidden_activation=self.hidden_activation,
+                include_bias=self.include_bias,
+                bias_regularizer=self.bias_regularizer,
             )
         )
 
