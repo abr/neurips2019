@@ -696,7 +696,7 @@ class LMUFFT(tf.keras.layers.Layer):
         return tf.transpose(m, perm=[0, 2, 1])
 
     def _raw_convolution(self, u):
-        seq_len = tf.shape(u)[1]
+        seq_len = shape_list(u)[1]
         assert self.impulse_response.shape == (seq_len, self.order)
 
         u = tf.transpose(u, perm=[0, 2, 1])
@@ -739,3 +739,23 @@ class LMUFFT(tf.keras.layers.Layer):
 
         config["hidden_cell"] = tf.keras.layers.deserialize(config["hidden_cell"])
         return super().from_config(config)
+
+
+def shape_list(tensor):
+    """
+    Deal with dynamic shape in tensorflow cleanly.
+
+    Args:
+        tensor (:obj:`tf.Tensor`): The tensor we want the shape of.
+
+    Returns:
+        :obj:`List[int]`: The shape of the tensor as a list.
+    """
+    dynamic = tf.shape(tensor)
+
+    if tensor.shape == tf.TensorShape(None):
+        return dynamic
+
+    static = tensor.shape.as_list()
+
+    return [dynamic[i] if s is None else s for i, s in enumerate(static)]
