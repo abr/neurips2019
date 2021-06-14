@@ -450,3 +450,47 @@ def test_no_input_kernel_dimension_mismatch(fft):
 
     with pytest.raises(ValueError, match="no input kernel"):
         lmu_layer(tf.ones((4, 10, 2)))
+
+
+# @pytest.mark.parametrize("fft", (True, False))
+@pytest.mark.parametrize("fft", [True])
+def test_profile(fft, tmp_path):
+    dims = 32
+    seq_len = 1024
+    batch_size = 4
+    odims = 2
+
+    lmu_layer = layers.LMU(
+        memory_d=dims,
+        order=256,
+        theta=784,
+        hidden_cell=None,
+        hidden_to_memory=not fft,
+        memory_to_memory=not fft,
+        input_to_hidden=not fft,
+        return_sequences=True,
+    )
+
+    inputs = tf.keras.layers.Input((seq_len, dims), batch_size=batch_size)
+    lmu = lmu_layer(inputs)
+    outputs = tf.keras.layers.Dense(odims)(lmu)
+
+    model = tf.keras.Model(inputs=inputs, outputs=outputs)
+
+    n_train = 5 * batch_size
+    x_train = tf.random.uniform((n_train, seq_len, dims), minval=-1, maxval=1, seed=0)
+    y_train = tf.random.uniform((n_train, seq_len, odims), minval=-1, maxval=1, seed=1)
+    model.compile(
+        loss="mse",
+        optimizer=tf.keras.optimizers.RMSprop(),
+    )
+
+    log_dir = tmp_path / "tb_logs"
+    print(f"Logging to: {log_dir}")
+    callbacks = [
+        tf.keras.callbacks.TensorBoard(
+            log_dir=log_dir,
+            profile_batch=2,
+        )
+    ]
+    model.fit(x_train, y_train, epochs=2, batch_size=batch_size, callbacks=callbacks)
