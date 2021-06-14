@@ -194,7 +194,8 @@ def test_save_load_serialization(mode, tmp_path):
     ),
 )
 @pytest.mark.parametrize("memory_d", [1, 4])
-def test_fft(return_sequences, hidden_cell, memory_d, rng):
+@pytest.mark.parametrize("conv_mode", ("fft", "raw"))
+def test_fft(return_sequences, hidden_cell, memory_d, conv_mode, rng):
     kwargs = dict(memory_d=memory_d, order=2, theta=3, hidden_cell=hidden_cell())
 
     x = rng.uniform(-1, 1, size=(2, 10, 32))
@@ -205,7 +206,9 @@ def test_fft(return_sequences, hidden_cell, memory_d, rng):
     )
     rnn_out = rnn_layer(x)
 
-    fft_layer = layers.LMUFFT(return_sequences=return_sequences, **kwargs)
+    fft_layer = layers.LMUFFT(
+        return_sequences=return_sequences, conv_mode=conv_mode, **kwargs
+    )
     fft_layer.build(x.shape)
     fft_layer.kernel.assign(rnn_layer.cell.kernel)
     fft_out = fft_layer(x)
