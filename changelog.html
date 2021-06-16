@@ -1,0 +1,441 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Release history &#8212; KerasLMU 0.3.2.dev0 docs</title>
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/basic.css" type="text/css" />
+<link href="https://fonts.googleapis.com/css?family=IBM+Plex+Sans:400,400i,600|Rajdhani:700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.2/css/all.css" integrity="sha384-oS3vJWv+0UjzBfQzYUhtDYW+Pj2yciDJxpsK1OYPAYjqT085Qq/1cq5FLXAZQ7Ay" crossorigin="anonymous">
+<link rel="stylesheet" href="https://www.nengo.ai/css/bootstrap.css" type="text/css">
+<style>
+  body .title-bar,
+  body .documentation-source h1:after {
+    background-color: #a8acaf;
+  }
+</style>
+<!-- Google Tag Manager -->
+<script>
+ (function (w, d, s, l, i) {
+   w[l] = w[l] || [];
+   w[l].push({ "gtm.start": new Date().getTime(), event: "gtm.js" });
+   var f = d.getElementsByTagName(s)[0],
+       j = d.createElement(s),
+       dl = l != "dataLayer" ? "&l=" + l : "";
+   j.async = true;
+   j.src = "https://www.googletagmanager.com/gtm.js?id=" + i + dl;
+   f.parentNode.insertBefore(j, f);
+ })(window, document, "script", "dataLayer", "GTM-KWCR2HN");
+</script>
+<!-- End Google Tag Manager -->
+<script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/scrollreveal"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/stickyfill/2.1.0/stickyfill.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js" integrity="sha384-smHYKdLADwkXOn1EmN1qk/HfnUcbVRZyYmZ4qpPea6sjB/pTJ0euyQp0Mk8ck+5T" crossorigin="anonymous"></script>
+<!-- From basic/layout.html -->
+<script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+  
+  
+<script src="_static/underscore.js"></script>
+  
+  
+<script src="_static/doctools.js"></script>
+  
+  
+<script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+  
+    <link rel="shortcut icon" href="_static/favicon.ico"/>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Contributing to KerasLMU" href="contributing.html" />
+    <link rel="prev" title="Project information" href="project.html" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+
+  </head><body class="bg-dark">
+
+<header class="fixed-top header-top shadow-sm">
+  <nav class="navbar navbar-expand-md navbar-light bg-white">
+    <a class="navbar-brand" href="https://www.nengo.ai/">
+      <img
+        src="https://www.nengo.ai/design/_images/general-full-light.svg"
+        alt="Nengo"
+        class="logo"
+      />
+    </a>
+    <button
+      class="navbar-toggler"
+      type="button"
+      data-toggle="collapse"
+      data-target="#navbar-collapse"
+      aria-controls="navbar-collapse"
+      aria-expanded="false"
+      aria-label="Toggle navigation"
+    >
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbar-collapse">
+      <ul class="navbar-nav ml-auto">
+        <li class="nav-item">
+          <a class="nav-link" href="https://www.nengo.ai/">What is Nengo?</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="https://www.nengo.ai/examples/">Examples</a>
+        </li>
+        <li class="nav-item dropdown active">
+          <a
+            class="nav-link dropdown-toggle"
+            id="navbar-dropdown-docs"
+            data-toggle="dropdown"
+            aria-haspopup="true"
+            aria-expanded="false"
+            href="#"
+            >Documentation</a
+          >
+          <div
+            class="dropdown-menu shadow-lg border-0"
+            aria-labelledby="navbar-dropdown-docs"
+          >
+            
+            <a class="dropdown-item" href="https://www.nengo.ai/nengo/">Nengo core</a>
+            <a class="dropdown-item" href="https://github.com/nengo/nengo-gui/">NengoGUI</a>
+            <a class="dropdown-item" href="https://www.nengo.ai/nengo-dl/">NengoDL</a>
+            <div class="dropdown-divider"></div>
+            <a class="dropdown-item" href="https://www.nengo.ai/nengo-spa/">NengoSPA</a>
+            <a class="dropdown-item" href="https://www.nengo.ai/nengo-extras/">NengoExtras</a>
+            <a class="dropdown-item" href="https://arvoelke.github.io/nengolib-docs/">Nengolib</a>
+            <a class="dropdown-item" href="https://www.nengo.ai/keras-spiking">KerasSpiking</a>
+            <a class="dropdown-item" href="https://www.nengo.ai/pytorch-spiking">PyTorchSpiking</a>
+            <div class="dropdown-divider"></div>
+            <a class="dropdown-item" href="https://www.nengo.ai/nengo-fpga/">NengoFPGA</a>
+            <a class="dropdown-item" href="https://www.nengo.ai/nengo-loihi/">NengoLoihi</a>
+            <a class="dropdown-item" href="https://labs.nengo.ai/nengo-ocl/">NengoOCL</a>
+            <a class="dropdown-item" href="https://github.com/project-rig/nengo_spinnaker">NengoSpiNNaker</a>
+            <a class="dropdown-item" href="https://github.com/nengo-labs/nengo-mpi">NengoMPI</a>
+            <div class="dropdown-divider"></div>
+            <a class="dropdown-item" href="https://www.nengo.ai/documentation/"
+              >All documentation</a
+            >
+          </div>
+        </li>
+        <li class="nav-item dropdown">
+          <a
+            class="nav-link dropdown-toggle"
+            id="navbar-dropdown-community"
+            data-toggle="dropdown"
+            aria-haspopup="true"
+            aria-expanded="false"
+            href="#"
+            >Community</a
+          >
+          <div
+            class="dropdown-menu shadow-lg border-0"
+            aria-labelledby="navbar-dropdown-community"
+          >
+            <a class="dropdown-item" href="https://forum.nengo.ai">Forum</a>
+            <div class="dropdown-divider"></div>
+            <a class="dropdown-item" href="https://www.nengo.ai/people/"
+              >People</a
+            >
+            <a class="dropdown-item" href="https://www.nengo.ai/summer-school/"
+              >Summer school</a
+            >
+            <a class="dropdown-item" href="https://www.nengo.ai/contributing/"
+              >Contributing</a
+            >
+            <a class="dropdown-item" href="https://www.nengo.ai/publications/"
+              >Publications</a
+            >
+            <a class="dropdown-item" href="https://www.nengo.ai/videos/"
+              >Videos</a
+            >
+            <a class="dropdown-item" href="https://www.nengo.ai/conduct/"
+              >Code of conduct</a
+            >
+            <a class="dropdown-item" href="https://www.nengo.ai/caa/">CAA</a>
+          </div>
+        </li>
+        <li class="nav-item">
+          <a
+            class="nav-link btn btn-success btn-sm text-white"
+            href="https://www.nengo.ai/getting-started/"
+            >Getting started</a
+          >
+        </li>
+      </ul>
+    </div>
+  </nav>
+</header>
+<div class="main-content gradient-top">
+  <div class="container-fluid">
+    <div class="row"><a class="toggle-sidenav d-block d-md-none" href="#"
+  ><i class="icon-close fa fa-fw fa-arrow-left"></i
+  ><i class="icon-open fa fa-fw fa-arrow-right"></i
+></a>
+<div role="complementary" class="sidenav col-4 col-xl-3 p-0 border-right">
+  <h3 class="pt-5 px-5">
+    <a href="index.html">
+      <img
+        class="img-fluid documentation-image"
+        src="https://www.nengo.ai/design/_images/general-full-light.svg"
+        alt="KerasLMU"
+      />
+    </a>
+  </h3>
+<form class="px-5 py-3 my-0 border-bottom" action="search.html" method="get">
+  <div class="form-group form-group-single">
+    <input type="text" name="q" class="form-control" placeholder="Search" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+    <button type="submit" class="btn btn-link">
+      <img src="https://www.nengo.ai/img/icon-search.svg" alt="Go" />
+    </button>
+  </div>
+</form><div class="p-5 toctree">
+  
+    <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="basic-usage.html">Basic usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api-reference.html">API reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Examples</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="project.html">Project information</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Release history</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#unreleased">0.3.2 (unreleased)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#november-16-2020">0.3.1 (November 16, 2020)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#november-6-2020">0.3.0 (November 6, 2020)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#november-2-2020">0.2.0 (November 2, 2020)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#june-22-2020">0.1.0 (June 22, 2020)</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="contributing.html">Contributing to KerasLMU</a></li>
+<li class="toctree-l2"><a class="reference internal" href="citation.html">Citation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="license.html">KerasLMU license</a></li>
+</ul>
+</li>
+</ul>
+
+  
+  </div>
+  
+  <form class="p-5 my-0 border-top">
+    <div class="form-group">
+      <label class="text-gray">Version:</label>
+      <select class="custom-select" onchange="switchVersion(this);">
+        
+        
+        <option selected>latest</option>
+        
+        
+          
+        <option value="v0.3.1/changelog.html">
+          v0.3.1
+        </option>
+          
+        
+          
+        <option value="v0.3.0/changelog.html">
+          v0.3.0
+        </option>
+          
+        
+          
+        <option value="v0.2.0/changelog.html">
+          v0.2.0
+        </option>
+          
+        
+      </select>
+    </div>
+  </form>
+  
+</div>
+      
+
+      <div class="col-12 col-md-8 col-xl-9">
+        <div class="container">
+          <div class="row">
+            <div class="col-10 offset-1 pb-5 documentation-source" role="main">
+              
+              
+              <div class="admonition note">
+                  <p class="admonition-title">Note</p>
+                  <p>
+                  This documentation is for a development version.
+                  <a href="v0.3.1/changelog.html">
+                  Click here for the latest stable release (v0.3.1).
+                  </a>
+                  </p>
+              </div>
+              
+              
+  <div class="section" id="release-history">
+<h1>Release history<a class="headerlink" href="#release-history" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="unreleased">
+<h2>0.3.2 (unreleased)<a class="headerlink" href="#unreleased" title="Permalink to this headline">¶</a></h2>
+<p><strong>Added</strong></p>
+<ul class="simple">
+<li><p>Setting <code class="docutils literal notranslate"><span class="pre">kernel_initializer=None</span></code> now removes the dense input kernel. (<a class="reference external" href="https://github.com/nengo/keras-lmu/pull/40">#40</a>)</p></li>
+<li><p>The <code class="docutils literal notranslate"><span class="pre">keras_lmu.LMUFFT</span></code> layer now supports <code class="docutils literal notranslate"><span class="pre">memory_d</span> <span class="pre">&gt;</span> <span class="pre">1</span></code>. <code class="docutils literal notranslate"><span class="pre">keras_lmu.LMU</span></code> now
+uses this implementation for all values of <code class="docutils literal notranslate"><span class="pre">memory_d</span></code> when feedforward conditions
+are satisfied (no hidden-to-memory or memory-to-memory connections,
+and the sequence length is not <code class="docutils literal notranslate"><span class="pre">None</span></code>). (<a class="reference external" href="https://github.com/nengo/keras-lmu/pull/40">#40</a>)</p></li>
+</ul>
+</div>
+<div class="section" id="november-16-2020">
+<h2>0.3.1 (November 16, 2020)<a class="headerlink" href="#november-16-2020" title="Permalink to this headline">¶</a></h2>
+<p><strong>Changed</strong></p>
+<ul class="simple">
+<li><p>Raise a validation error if <code class="docutils literal notranslate"><span class="pre">hidden_to_memory</span></code> or <code class="docutils literal notranslate"><span class="pre">input_to_hidden</span></code> are True
+when <code class="docutils literal notranslate"><span class="pre">hidden_cell=None</span></code>. (<a class="reference external" href="https://github.com/nengo/keras-lmu/pull/26">#26</a>)</p></li>
+</ul>
+<p><strong>Fixed</strong></p>
+<ul class="simple">
+<li><p>Fixed a bug with the autoswapping in <code class="docutils literal notranslate"><span class="pre">keras_lmu.LMU</span></code> during training. (<a class="reference external" href="https://github.com/nengo/keras-lmu/pull/28">#28</a>)</p></li>
+<li><p>Fixed a bug where dropout mask was not being reset properly in the hidden cell.
+(<a class="reference external" href="https://github.com/nengo/keras-lmu/pull/29">#29</a>)</p></li>
+</ul>
+</div>
+<div class="section" id="november-6-2020">
+<h2>0.3.0 (November 6, 2020)<a class="headerlink" href="#november-6-2020" title="Permalink to this headline">¶</a></h2>
+<p><strong>Changed</strong></p>
+<ul class="simple">
+<li><p>Renamed module from <code class="docutils literal notranslate"><span class="pre">lmu</span></code> to <code class="docutils literal notranslate"><span class="pre">keras_lmu</span></code> (so it will now be imported via
+<code class="docutils literal notranslate"><span class="pre">import</span> <span class="pre">keras_lmu</span></code>), renamed package from <code class="docutils literal notranslate"><span class="pre">lmu</span></code> to
+<code class="docutils literal notranslate"><span class="pre">keras-lmu</span></code> (so it will now be installed via <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">keras-lmu</span></code>), and
+changed any references to “NengoLMU” to “KerasLMU” (since this implementation is
+based in the Keras framework rather than Nengo). In the future the <code class="docutils literal notranslate"><span class="pre">lmu</span></code> namespace
+will be used as a meta-package to encapsulate LMU implementations in different
+frameworks. (<a class="reference external" href="https://github.com/abr/lmu/pull/24">#24</a>)</p></li>
+</ul>
+</div>
+<div class="section" id="november-2-2020">
+<h2>0.2.0 (November 2, 2020)<a class="headerlink" href="#november-2-2020" title="Permalink to this headline">¶</a></h2>
+<p><strong>Added</strong></p>
+<ul class="simple">
+<li><p>Added documentation for package description, installation, usage, API, examples,
+and project information. (<a class="reference external" href="https://github.com/abr/lmu/pull/20">#20</a>)</p></li>
+<li><p>Added LMU FFT cell variant and auto-switching LMU class. (<a class="reference external" href="https://github.com/abr/lmu/pull/21">#21</a>)</p></li>
+<li><p>LMUs can now be used with any Keras RNN cell (e.g. LSTMs or GRUs) through the
+<code class="docutils literal notranslate"><span class="pre">hidden_cell</span></code> parameter. This can take an RNN cell (like
+<code class="docutils literal notranslate"><span class="pre">tf.keras.layers.SimpleRNNCell</span></code> or <code class="docutils literal notranslate"><span class="pre">tf.keras.layers.LSTMCell</span></code>) or a feedforward
+layer (like <code class="docutils literal notranslate"><span class="pre">tf.keras.layers.Dense</span></code>) or <code class="docutils literal notranslate"><span class="pre">None</span></code> (to create a memory-only LMU).
+The output of the LMU memory component will be fed to the <code class="docutils literal notranslate"><span class="pre">hidden_cell</span></code>.
+(<a class="reference external" href="https://github.com/abr/lmu/pull/22">#22</a>)</p></li>
+<li><p>Added <code class="docutils literal notranslate"><span class="pre">hidden_to_memory</span></code>, <code class="docutils literal notranslate"><span class="pre">memory_to_memory</span></code>, and <code class="docutils literal notranslate"><span class="pre">input_to_hidden</span></code> parameters
+to <code class="docutils literal notranslate"><span class="pre">LMUCell</span></code>, which can be used to enable/disable connections between components
+of the LMU. They default to disabled. (<a class="reference external" href="https://github.com/abr/lmu/pull/22">#22</a>)</p></li>
+<li><p>LMUs can now be used with multi-dimensional memory components. This is controlled
+through a new <code class="docutils literal notranslate"><span class="pre">memory_d</span></code> parameter of <code class="docutils literal notranslate"><span class="pre">LMUCell</span></code>. (<a class="reference external" href="https://github.com/abr/lmu/pull/22">#22</a>)</p></li>
+<li><p>Added <code class="docutils literal notranslate"><span class="pre">dropout</span></code> parameter to <code class="docutils literal notranslate"><span class="pre">LMUCell</span></code> (which applies dropout to the input)
+and <code class="docutils literal notranslate"><span class="pre">recurrent_dropout</span></code> (which applies dropout to the <code class="docutils literal notranslate"><span class="pre">memory_to_memory</span></code>
+connection, if it is enabled). Note that dropout can be added in the hidden
+component through the <code class="docutils literal notranslate"><span class="pre">hidden_cell</span></code> object. (<a class="reference external" href="https://github.com/abr/lmu/pull/22">#22</a>)</p></li>
+</ul>
+<p><strong>Changed</strong></p>
+<ul class="simple">
+<li><p>Renamed <code class="docutils literal notranslate"><span class="pre">lmu.lmu</span></code> module to <code class="docutils literal notranslate"><span class="pre">lmu.layers</span></code>. (<a class="reference external" href="https://github.com/abr/lmu/pull/22">#22</a>)</p></li>
+<li><p>Combined the <code class="docutils literal notranslate"><span class="pre">*_encoders_initializer``parameters</span> <span class="pre">of</span> <span class="pre">``LMUCell</span></code> into a single
+<code class="docutils literal notranslate"><span class="pre">kernel_initializer</span></code> parameter. (<a class="reference external" href="https://github.com/abr/lmu/pull/22">#22</a>)</p></li>
+<li><p>Combined the <code class="docutils literal notranslate"><span class="pre">*_kernel_initializer</span></code> parameters of <code class="docutils literal notranslate"><span class="pre">LMUCell</span></code> into a single
+<code class="docutils literal notranslate"><span class="pre">recurrent_kernel_initializer</span></code> parameter. (<a class="reference external" href="https://github.com/abr/lmu/pull/22">#22</a>)</p></li>
+</ul>
+<p><strong>Removed</strong></p>
+<ul class="simple">
+<li><p>Removed <code class="docutils literal notranslate"><span class="pre">Legendre</span></code>, <code class="docutils literal notranslate"><span class="pre">InputScaled</span></code>, <code class="docutils literal notranslate"><span class="pre">LMUCellODE</span></code>, and <code class="docutils literal notranslate"><span class="pre">LMUCellGating</span></code>
+classes. (<a class="reference external" href="https://github.com/abr/lmu/pull/22">#22</a>)</p></li>
+<li><p>Removed the <code class="docutils literal notranslate"><span class="pre">method</span></code>, <code class="docutils literal notranslate"><span class="pre">realizer</span></code>, and <code class="docutils literal notranslate"><span class="pre">factory</span></code> arguments from <code class="docutils literal notranslate"><span class="pre">LMUCell</span></code>
+(they will take on the same default values as before, they just cannot be changed).
+(<a class="reference external" href="https://github.com/abr/lmu/pull/22">#22</a>)</p></li>
+<li><p>Removed the <code class="docutils literal notranslate"><span class="pre">trainable_*</span></code> arguments from <code class="docutils literal notranslate"><span class="pre">LMUCell</span></code>. This functionality is
+largely redundant with the new functionality added for enabling/disabling internal
+LMU connections. These were primarily used previously for e.g. setting a connection to
+zero and then disabling learning, which can now be done more efficiently by
+disabling the connection entirely. (<a class="reference external" href="https://github.com/abr/lmu/pull/22">#22</a>)</p></li>
+<li><p>Removed the <code class="docutils literal notranslate"><span class="pre">units</span></code> and <code class="docutils literal notranslate"><span class="pre">hidden_activation</span></code> parameters of <code class="docutils literal notranslate"><span class="pre">LMUCell</span></code> (these are
+now specified directly in the <code class="docutils literal notranslate"><span class="pre">hidden_cell</span></code>. (<a class="reference external" href="https://github.com/abr/lmu/pull/22">#22</a>)</p></li>
+<li><p>Removed the dependency on <code class="docutils literal notranslate"><span class="pre">nengolib</span></code>. (<a class="reference external" href="https://github.com/abr/lmu/pull/22">#22</a>)</p></li>
+<li><p>Dropped support for Python 3.5, which reached its end of life in September 2020.
+(<a class="reference external" href="https://github.com/abr/lmu/pull/22">#22</a>)</p></li>
+</ul>
+</div>
+<div class="section" id="june-22-2020">
+<h2>0.1.0 (June 22, 2020)<a class="headerlink" href="#june-22-2020" title="Permalink to this headline">¶</a></h2>
+<p>Initial release of KerasLMU 0.1.0! Supports Python 3.5+.</p>
+<p>The API is considered unstable; parts are likely to change in the future.</p>
+<p>Thanks to all of the contributors for making this possible!</p>
+</div>
+</div>
+
+
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div><footer class="text-light footer-main gradient-bottom">
+  <p class="small text-center mb-0">
+    <a class="no-hover-line" href="https://appliedbrainresearch.com">
+      <img
+        src="https://appliedbrainresearch.com/img/logo-blue-notext.svg"
+        height="48"
+      />
+    </a>
+    <a href="https://www.nengo.ai/">What is Nengo?</a>
+    <a href="https://www.nengo.ai/examples/">Examples</a>
+    <a href="https://www.nengo.ai/documentation/">Documentation</a>
+    <a href="https://www.nengo.ai/getting-started/">Getting started</a>
+    <a href="https://www.nengo.ai/privacy/">Privacy</a>
+  </p>
+  <p class="small text-center mb-0">&copy; Applied Brain Research</p>
+</footer>
+<script>
+  function switchVersion(select) {
+    var option = select.selectedOptions[0];
+    if (option.hasAttribute("value")) {
+      window.location = option.value;
+    }
+  }
+</script>
+
+<script>
+  var elements = document.querySelectorAll('.sidenav');
+  Stickyfill.add(elements);
+</script>
+<script>
+  ScrollReveal().reveal(".fade-in", {
+      scale: 0.85,
+      duration: 1000,
+      delay: 250,
+      interval: 50
+  });
+</script>
+<script>
+  $('a.toggle-sidenav').on('click', function(e) {
+    e.preventDefault();
+    if ( $(this).hasClass('active') ) {
+      $(this).removeClass('active');
+      $('.sidenav').removeClass('open');
+    } else {
+      $(this).addClass('active');
+      $('.sidenav').addClass('open');
+    }
+  });
+</script>
+<script>
+  var lists = document.querySelectorAll('.toctree ul');
+  lists.forEach((ul) => {
+      ul.classList.add("nav");
+  });
+  var links = document.querySelectorAll('.toctree a');
+  links.forEach((link) => {
+      link.classList.add("nav-link");
+  });
+  $("body").scrollspy({target: ".sidenav"});
+</script>
+  </body>
+</html>
