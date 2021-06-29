@@ -44,7 +44,7 @@ Release history
 - Improved speed of ``keras_lmu.LMUFFT`` when running on CPU. (`#40`_)
 
 .. _#40: https://github.com/nengo/keras-lmu/pull/40
-.. _#47: https://github.com/nengo/keras-lmu/pull/41
+.. _#41: https://github.com/nengo/keras-lmu/pull/41
 
 0.3.1 (November 16, 2020)
 =========================
