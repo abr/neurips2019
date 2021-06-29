@@ -358,9 +358,11 @@ def test_connection_params(fft, hidden_cell):
             lmu.memory_d * lmu.order,
             lmu.hidden_cell.units,
         )
-    assert y.shape == (
-        input_shape[0],
-        lmu.memory_d * lmu.order if hidden_cell is None else lmu.hidden_cell.units,
+    assert y.shape.is_compatible_with(
+        (
+            None if fft else input_shape[0],  # fft loses track of static batch shape
+            lmu.memory_d * lmu.order if hidden_cell is None else lmu.hidden_cell.units,
+        )
     )
 
     lmu_args["input_to_hidden"] = hidden_cell is not None
@@ -386,9 +388,11 @@ def test_connection_params(fft, hidden_cell):
             lmu.memory_d * lmu.order + input_shape[-1],
             lmu.hidden_cell.units,
         )
-    assert y.shape == (
-        input_shape[0],
-        lmu.memory_d * lmu.order if hidden_cell is None else lmu.hidden_cell.units,
+    assert y.shape.is_compatible_with(
+        (
+            None if fft else input_shape[0],  # fft loses track of static batch shape
+            lmu.memory_d * lmu.order if hidden_cell is None else lmu.hidden_cell.units,
+        )
     )
 
 
@@ -617,3 +621,22 @@ def test_theta_attribute(mode):
         cell = layer if mode == "cell" else layer.layer.cell
         cell.theta_inv.assign(10)
         assert np.allclose(layer.theta, 0.1)
+
+
+@pytest.mark.parametrize("gpu", (True, False))
+def test_parallel_fft(gpu, rng, monkeypatch):
+    monkeypatch.setattr(
+        tf.config, "get_visible_devices", lambda *_: ["a_gpu"] if gpu else []
+    )
+
+    x = tf.constant(rng.uniform(-1, 1, size=(32, 20, 5)), dtype=tf.float32)
+
+    y0 = tf.signal.rfft(x, fft_length=[10])
+    y1 = layers.LMUFFT._parallel_rfft(x, fft_length=[10])
+
+    assert np.allclose(y0, y1)
+
+    x0 = tf.signal.irfft(y0, fft_length=[10])
+    x1 = layers.LMUFFT._parallel_rfft(y1, fft_length=[10], inverse=True)
+
+    assert np.allclose(x0, x1)

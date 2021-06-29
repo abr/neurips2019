@@ -41,6 +41,7 @@ Release history
 - The ``A`` and ``B`` matrices are now stored as constants instead of non-trainable
   variables. This can improve the training/inference speed, but it means that saved
   weights from previous versions will be incompatible. (`#41`_)
+- Improved speed of ``keras_lmu.LMUFFT`` when running on CPU. (`#40`_)
 
 .. _#40: https://github.com/nengo/keras-lmu/pull/40
 .. _#47: https://github.com/nengo/keras-lmu/pull/41

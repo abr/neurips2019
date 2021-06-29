@@ -2,9 +2,13 @@
 Core classes for the KerasLMU package.
 """
 
+import os
+from functools import partial
+
 import numpy as np
 import tensorflow as tf
 from tensorflow.python.keras.layers.recurrent import DropoutRNNCellMixin
+from tensorflow.python.ops.signal.fft_ops import irfft, rfft
 
 
 class LMUCell(DropoutRNNCellMixin, tf.keras.layers.Layer):
@@ -786,7 +790,7 @@ class LMUFFT(tf.keras.layers.Layer):
         if self.dropout:
             inputs = tf.keras.layers.Dropout(
                 self.dropout, noise_shape=(inputs.shape[0], 1) + inputs.shape[2:]
-            )(inputs)
+            )(inputs, training=training)
 
         # Apply input encoders
         u = (
@@ -798,15 +802,17 @@ class LMUFFT(tf.keras.layers.Layer):
         # FFT requires shape (batch, memory_d, timesteps)
         u = tf.transpose(u, perm=[0, 2, 1])
 
-        # Pad sequences to avoid circular convolution
         # Perform the FFT
-        fft_input = tf.signal.rfft(u, fft_length=[2 * seq_len], name="input_pad")
+        # Pad sequences to avoid circular convolution
+        fft_input = LMUFFT._parallel_rfft(u, fft_length=[2 * seq_len])
 
         # Elementwise product of FFT (with broadcasting)
         result = tf.expand_dims(fft_input, axis=-2) * self.impulse_response
 
         # Inverse FFT
-        m = tf.signal.irfft(result, fft_length=[2 * seq_len])[..., :seq_len]
+        m = LMUFFT._parallel_rfft(result, inverse=True, fft_length=[2 * seq_len])[
+            ..., :seq_len
+        ]
 
         m = tf.reshape(m, (-1, self.order * self.memory_d, seq_len))
         m = tf.transpose(m, perm=[0, 2, 1])
@@ -830,6 +836,54 @@ class LMUFFT(tf.keras.layers.Layer):
                 )
 
         return h
+
+    @staticmethod
+    def _parallel_rfft(x, inverse=False, fft_length=None):
+        """
+        Computes FFT in parallel, which results in faster performance on CPU.
+
+        See https://github.com/tensorflow/tensorflow/issues/6541#issuecomment-713578892.
+
+        Parameters
+        ----------
+        x : ``tf.Tensor``
+            The input to the FFT.
+        inverse: bool
+            If True, compute the inverse FFT.
+        fft_length: list of int
+            Pad/crop the fft axis (last dimension of ``x``) to this length (specified
+            as a length-1 list for some reason).
+
+        Returns
+        -------
+        y : ``tf.Tensor``
+            The (inverse) real-valued FFT of ``x``.
+        """
+
+        if len(tf.config.get_visible_devices("GPU")) > 0:
+            # tensorflow's regular fft implementation already runs fast on GPU,
+            # don't need to do anything special
+            return (
+                tf.signal.irfft(x, fft_length=fft_length)
+                if inverse
+                else tf.signal.rfft(x, fft_length=fft_length)
+            )
+
+        op = partial(irfft if inverse else rfft, fft_length=fft_length)
+
+        x_shape = tf.shape(x)
+
+        # use map to parallelize fft calls
+        y = tf.map_fn(
+            op,
+            tf.reshape(x, (-1, x_shape[-1])),
+            parallel_iterations=os.cpu_count(),
+            dtype=x.dtype.real_dtype
+            if inverse
+            else (tf.complex64 if x.dtype == tf.float32 else tf.complex128),
+        )
+
+        return tf.reshape(y, tf.concat((x_shape[:-1], [-1]), axis=0))
 
     def get_config(self):
         """Return config of layer (for serialization during model saving/loading)."""
