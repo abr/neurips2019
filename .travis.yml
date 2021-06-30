@@ -39,15 +39,10 @@ jobs:
     python: 3.6
   -
     env:
-      SCRIPT="docs"
-    addons:
-      apt:
-        packages:
-          - pandoc
+      SCRIPT="remote-docs"
   -
     env:
-      SCRIPT="examples"
-    services: ['xvfb']
+      SCRIPT="remote-examples"
   - stage: deploy
     if: branch =~ ^release-candidate-* OR tag =~ ^v[0-9]*
     env: SCRIPT="deploy"

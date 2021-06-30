@@ -70,8 +70,8 @@ travis_yml:
       env:
         TF_VERSION: tensorflow==2.1.0
       python: 3.6
-    - script: docs
-    - script: examples
+    - script: remote-docs
+    - script: remote-examples
   pypi_user: __token__
   slack_notifications: "wZ7l/X7cVeetmwfup7vCeN74pqFGMC5eaJfy/aqRwVGCbY3aHQKoqJaBBrVef\
     c+DsJwPPM9HIOGs7jkPY+Y1pFbklAhWCDCvmc+f3fL4/yPWK1u7r8IIHhM3O0YvYrEHfFfZn+V1nAomx1\
@@ -94,6 +94,24 @@ ci_scripts:
     coverage: true
     pip_install:
       - $TF_VERSION
+  - template: remote-script
+    remote_script: docs
+    output_name: remote-docs
+    host: azure-docs
+    travis_var_key: 2895d60e3414
+    azure_name: nengo-dl-docs
+    azure_group: nengo-ci
+    remote_setup:
+      - conda install -y -c conda-forge cudatoolkit=11.2 cudnn=8.1
+  - template: remote-script
+    remote_script: examples
+    output_name: remote-examples
+    host: azure-examples
+    travis_var_key: 2895d60e3414
+    azure_name: nengo-dl-examples
+    azure_group: nengo-ci
+    remote_setup:
+      - conda install -y -c conda-forge cudatoolkit=11.2 cudnn=8.1
   - template: deploy
 
 codecov_yml: {}

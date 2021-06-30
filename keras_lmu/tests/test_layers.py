@@ -3,14 +3,16 @@
 import numpy as np
 import pytest
 import tensorflow as tf
+from scipy.signal import cont2discrete
 
 from keras_lmu import layers
 
 
-def test_multivariate_lmu(rng):
+@pytest.mark.parametrize("discretizer", ("zoh", "euler"))
+def test_multivariate_lmu(rng, discretizer):
     memory_d = 4
     order = 16
-    n_steps = 10
+    n_steps = 10 * order
     input_d = 32
 
     input_enc = rng.uniform(0, 1, size=(input_d, memory_d))
@@ -23,6 +25,7 @@ def test_multivariate_lmu(rng):
             memory_d=memory_d,
             order=order,
             theta=n_steps,
+            discretizer=discretizer,
             kernel_initializer=tf.initializers.constant(input_enc),
             hidden_cell=tf.keras.layers.SimpleRNNCell(
                 units=memory_d * order,
@@ -39,6 +42,7 @@ def test_multivariate_lmu(rng):
                 memory_d=1,
                 order=order,
                 theta=n_steps,
+                discretizer=discretizer,
                 kernel_initializer=tf.initializers.constant(input_enc[:, [i]]),
                 hidden_cell=tf.keras.layers.SimpleRNNCell(
                     units=order,
@@ -58,19 +62,21 @@ def test_multivariate_lmu(rng):
 
     for i in range(memory_d):
         assert np.allclose(
-            results[0][..., i * order : (i + 1) * order], results[i + 1], atol=2e-6
-        )
+            results[0][..., i * order : (i + 1) * order], results[i + 1], atol=2e-5
+        ), np.max(abs(results[0][..., i * order : (i + 1) * order] - results[i + 1]))
 
 
 @pytest.mark.parametrize("has_input_kernel", (True, False))
 @pytest.mark.parametrize("fft", (True, False))
-def test_layer_vs_cell(has_input_kernel, fft, rng):
+@pytest.mark.parametrize("discretizer", ("zoh", "euler"))
+def test_layer_vs_cell(rng, has_input_kernel, fft, discretizer):
     n_steps = 10
     input_d = 32
     kwargs = dict(
         memory_d=4 if has_input_kernel else input_d,
         order=12,
-        theta=n_steps,
+        theta=n_steps * (8 if discretizer == "euler" else 1),
+        discretizer=discretizer,
         kernel_initializer="glorot_uniform" if has_input_kernel else None,
         memory_to_memory=not fft,
     )
@@ -97,12 +103,15 @@ def test_layer_vs_cell(has_input_kernel, fft, rng):
     ):
         assert np.allclose(w0.numpy(), w1.numpy())
 
-    atol = 2e-6 if fft else 1e-8
-    assert np.allclose(cell_out, lmu_cell(inp), atol=atol)
-    assert np.allclose(cell_out, layer_out, atol=atol)
+    assert np.allclose(cell_out, lmu_cell(inp))
+    assert np.allclose(cell_out, layer_out, atol=3e-6 if fft else 1e-8), np.max(
+        np.abs(cell_out - layer_out)
+    )
 
 
-def test_save_load_weights(rng, tmp_path):
+@pytest.mark.parametrize("discretizer", ("zoh", "euler"))
+@pytest.mark.parametrize("trainable_theta", (True, False))
+def test_save_load_weights(rng, tmp_path, discretizer, trainable_theta):
     memory_d = 4
     order = 12
     n_steps = 10
@@ -116,6 +125,8 @@ def test_save_load_weights(rng, tmp_path):
         order,
         n_steps,
         tf.keras.layers.SimpleRNNCell(units=64),
+        discretizer=discretizer,
+        trainable_theta=trainable_theta,
         return_sequences=True,
     )(inp)
     model0 = tf.keras.Model(inp, lmu0)
@@ -126,6 +137,8 @@ def test_save_load_weights(rng, tmp_path):
         order,
         n_steps,
         tf.keras.layers.SimpleRNNCell(units=64),
+        discretizer=discretizer,
+        trainable_theta=trainable_theta,
         return_sequences=True,
     )(inp)
     model1 = tf.keras.Model(inp, lmu1)
@@ -140,12 +153,24 @@ def test_save_load_weights(rng, tmp_path):
     assert np.allclose(out0, out2)
 
 
+@pytest.mark.parametrize("discretizer", ("zoh", "euler"))
+@pytest.mark.parametrize("trainable_theta", (True, False))
 @pytest.mark.parametrize("mode", ("cell", "lmu", "fft"))
-def test_save_load_serialization(mode, tmp_path):
+def test_save_load_serialization(mode, tmp_path, trainable_theta, discretizer):
+    if mode == "fft" and trainable_theta:
+        pytest.skip("FFT does not support trainable theta")
+
     inp = tf.keras.Input((10 if mode == "fft" else None, 32))
     if mode == "cell":
         out = tf.keras.layers.RNN(
-            layers.LMUCell(1, 2, 3, tf.keras.layers.SimpleRNNCell(4)),
+            layers.LMUCell(
+                1,
+                2,
+                3,
+                tf.keras.layers.SimpleRNNCell(4),
+                trainable_theta=trainable_theta,
+                discretizer=discretizer,
+            ),
             return_sequences=True,
         )(inp)
     elif mode == "lmu":
@@ -156,6 +181,8 @@ def test_save_load_serialization(mode, tmp_path):
             tf.keras.layers.SimpleRNNCell(4),
             return_sequences=True,
             memory_to_memory=True,
+            trainable_theta=trainable_theta,
+            discretizer=discretizer,
         )(inp)
     elif mode == "fft":
         out = layers.LMUFFT(
@@ -163,6 +190,7 @@ def test_save_load_serialization(mode, tmp_path):
             2,
             3,
             tf.keras.layers.SimpleRNNCell(4),
+            discretizer=discretizer,
             return_sequences=True,
         )(inp)
 
@@ -194,8 +222,15 @@ def test_save_load_serialization(mode, tmp_path):
     ),
 )
 @pytest.mark.parametrize("memory_d", [1, 4])
-def test_fft(return_sequences, hidden_cell, memory_d, rng):
-    kwargs = dict(memory_d=memory_d, order=2, theta=3, hidden_cell=hidden_cell())
+@pytest.mark.parametrize("discretizer", ("zoh", "euler"))
+def test_fft(return_sequences, hidden_cell, memory_d, discretizer, rng):
+    kwargs = dict(
+        memory_d=memory_d,
+        order=2,
+        theta=12,
+        hidden_cell=hidden_cell(),
+        discretizer=discretizer,
+    )
 
     x = rng.uniform(-1, 1, size=(2, 10, 32))
 
@@ -208,7 +243,7 @@ def test_fft(return_sequences, hidden_cell, memory_d, rng):
     fft_layer = layers.LMUFFT(return_sequences=return_sequences, **kwargs)
     fft_layer.build(x.shape)
     fft_layer.kernel.assign(rnn_layer.cell.kernel)
-    fft_out = fft_layer(x)
+    fft_out = fft_layer(x, training=None)
 
     assert np.allclose(rnn_out, fft_out, atol=2e-6)
 
@@ -229,29 +264,30 @@ def test_validation_errors():
 
 
 @pytest.mark.parametrize(
-    "hidden_to_memory, memory_to_memory, memory_d, steps",
+    "should_use_fft, hidden_to_memory, memory_to_memory, steps, trainable_theta",
     [
-        (False, False, 1, 5),
-        (True, False, 1, 5),
-        (False, True, 1, 5),
-        (False, False, 2, 5),
-        (False, False, 1, None),
+        (True, False, False, 5, False),
+        (False, True, False, 5, False),
+        (False, False, True, 5, False),
+        (False, False, False, None, False),
+        (False, False, False, 5, True),
     ],
 )
-def test_fft_auto_swap(hidden_to_memory, memory_to_memory, memory_d, steps):
+def test_fft_auto_swap(
+    should_use_fft, hidden_to_memory, memory_to_memory, steps, trainable_theta
+):
     lmu = layers.LMU(
-        memory_d,
+        4,
         2,
         3,
         tf.keras.layers.Dense(5),
         hidden_to_memory=hidden_to_memory,
         memory_to_memory=memory_to_memory,
+        trainable_theta=trainable_theta,
     )
     lmu.build((32, steps, 8))
 
-    assert isinstance(lmu.layer, tf.keras.layers.RNN) == (
-        hidden_to_memory or memory_to_memory or steps is None
-    )
+    assert isinstance(lmu.layer, layers.LMUFFT) == should_use_fft
 
 
 @pytest.mark.parametrize(
@@ -396,16 +432,24 @@ def test_dropout(
     assert np.allclose(y0, y1)
 
 
+@pytest.mark.parametrize("trainable_theta", (True, False))
+@pytest.mark.parametrize("discretizer", ("zoh", "euler"))
 @pytest.mark.parametrize("fft", (True, False))
-def test_fit(fft):
+def test_fit(fft, discretizer, trainable_theta):
+    if fft and trainable_theta:
+        pytest.skip("FFT does not support trainable theta")
+
     lmu_layer = layers.LMU(
         memory_d=1,
         order=256,
-        theta=784,
-        hidden_cell=tf.keras.layers.SimpleRNNCell(units=10),
+        theta=784 if discretizer == "zoh" else 2000,
+        trainable_theta=trainable_theta,
+        hidden_cell=tf.keras.layers.SimpleRNNCell(units=30),
         hidden_to_memory=not fft,
         memory_to_memory=not fft,
         input_to_hidden=not fft,
+        discretizer=discretizer,
+        kernel_initializer="zeros",
     )
 
     inputs = tf.keras.layers.Input((5 if fft else None, 10))
@@ -420,7 +464,7 @@ def test_fit(fft):
     y_test = tf.ones((5, 1))
     model.compile(
         loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
-        optimizer=tf.keras.optimizers.RMSprop(),
+        optimizer=tf.keras.optimizers.Adam(),
         metrics=["accuracy"],
     )
 
@@ -447,3 +491,129 @@ def test_no_input_kernel_dimension_mismatch(fft):
 
     with pytest.raises(ValueError, match="no input kernel"):
         lmu_layer(tf.ones((4, 10, 2)))
+
+
+def test_discretizer_types():
+    with pytest.raises(ValueError, match="discretizer must be 'zoh' or 'euler'"):
+        layers.LMUCell(
+            memory_d=1, order=256, theta=784, hidden_cell=None, discretizer="test"
+        )
+
+
+@pytest.mark.parametrize("trainable_theta", (True, False))
+def test_discretizer_equivalence(trainable_theta, rng):
+    # check that zoh and euler produce approximately the same output
+    layer_zoh = layers.LMU(
+        memory_d=2,
+        order=8,
+        theta=256,
+        hidden_cell=None,
+        discretizer="zoh",
+        return_sequences=True,
+        kernel_initializer=None,
+        trainable_theta=trainable_theta,
+    )
+    layer_euler = layers.LMU(
+        memory_d=2,
+        order=8,
+        theta=256,
+        hidden_cell=None,
+        discretizer="euler",
+        return_sequences=True,
+        kernel_initializer=None,
+        trainable_theta=trainable_theta,
+    )
+
+    x = rng.uniform(-1, 1, size=(32, 10, 2))
+
+    zoh = layer_zoh(x)
+    euler = layer_euler(x)
+
+    assert np.allclose(zoh, euler, atol=0.02), np.max(np.abs(zoh - euler))
+
+
+def test_cont2discrete_zoh(rng):
+    A = rng.randn(64, 64)
+    B = rng.randn(64, 1)
+    C = np.ones((1, 64))
+    D = np.zeros((1,))
+
+    scipy_A, scipy_B, *_ = cont2discrete((A, B, C, D), dt=1.0, method="zoh")
+    tf_A, tf_B = layers.LMUCell._cont2discrete_zoh(A.T, B.T)
+
+    assert np.allclose(scipy_A, tf.transpose(tf_A))
+    assert np.allclose(scipy_B, tf.transpose(tf_B))
+
+
+@pytest.mark.parametrize("discretizer", ("euler", "zoh"))
+@pytest.mark.parametrize("trainable_theta", (True, False))
+def test_theta_update(discretizer, trainable_theta, tmp_path):
+    # create model
+    theta = 10
+    lmu_cell = layers.LMUCell(
+        memory_d=2,
+        order=3,
+        theta=theta,
+        trainable_theta=trainable_theta,
+        hidden_cell=tf.keras.layers.SimpleRNNCell(units=4),
+        discretizer=discretizer,
+    )
+
+    inputs = tf.keras.layers.Input((None, 20))
+    lmu = tf.keras.layers.RNN(lmu_cell)(inputs)
+    model = tf.keras.Model(inputs=inputs, outputs=lmu)
+
+    model.compile(
+        loss=tf.keras.losses.MeanSquaredError(), optimizer=tf.keras.optimizers.Adam()
+    )
+
+    # make sure theta_inv is set correctly to initial value
+    assert np.allclose(lmu_cell.theta_inv.numpy(), 1 / theta)
+
+    # fit model on some data
+    model.fit(tf.ones((64, 5, 20)), tf.ones((64, 4)), epochs=1)
+
+    # make sure theta kernel got updated if trained
+    assert np.allclose(lmu_cell.theta_inv.numpy(), 1 / theta) != trainable_theta
+
+    # save model and make sure you get same outputs, that is, correct theta was stored
+    model.save(str(tmp_path))
+
+    model_load = tf.keras.models.load_model(
+        str(tmp_path), custom_objects={"LMUCell": layers.LMUCell}
+    )
+
+    assert np.allclose(
+        model.predict(np.ones((32, 10, 20))),
+        model_load.predict(np.ones((32, 10, 20))),
+    )
+
+
+@pytest.mark.parametrize("mode", ("cell", "rnn", "fft"))
+def test_theta_attribute(mode):
+    theta = 3
+
+    # check LMUCell theta attribute
+    if mode == "cell":
+        layer = layers.LMUCell(1, 2, theta, None, trainable_theta=True)
+    elif mode == "rnn":
+        layer = layers.LMU(1, 2, theta, None, trainable_theta=True)
+    elif mode == "fft":
+        layer = layers.LMU(1, 2, theta, None, trainable_theta=False)
+
+    assert not layer.built
+    assert layer.theta == theta
+
+    layer.build((1, 1))
+    assert layer.built
+    assert np.allclose(layer.theta, theta)
+
+    if mode == "fft":
+        # fft doesn't support trainable theta
+        assert isinstance(layer.layer, layers.LMUFFT)
+    else:
+        # check that updates to the internal variable are reflected in the theta
+        # attribute
+        cell = layer if mode == "cell" else layer.layer.cell
+        cell.theta_inv.assign(10)
+        assert np.allclose(layer.theta, 0.1)

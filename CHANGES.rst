@@ -19,7 +19,7 @@ Release history
    - Removed
    - Fixed
 
-0.3.2 (unreleased)
+0.4.0 (unreleased)
 ==================
 
 **Added**
@@ -29,8 +29,21 @@ Release history
   uses this implementation for all values of ``memory_d`` when feedforward conditions
   are satisfied (no hidden-to-memory or memory-to-memory connections,
   and the sequence length is not ``None``). (`#40`_)
+- Added ``trainable_theta`` option, which will allow the ``theta`` parameter to be
+  learned during training. (`#41`_)
+- Added ``discretizer`` option, which controls the method used to solve for the ``A``
+  and ``B`` LMU matrices. This is mainly useful in combination with
+  ``trainable_theta=True``, where setting ``discretizer="euler"`` may improve the
+  training speed (possibly at the cost of some accuracy). (`#41`_)
+
+**Changed**
+
+- The ``A`` and ``B`` matrices are now stored as constants instead of non-trainable
+  variables. This can improve the training/inference speed, but it means that saved
+  weights from previous versions will be incompatible. (`#41`_)
 
 .. _#40: https://github.com/nengo/keras-lmu/pull/40
+.. _#41: https://github.com/nengo/keras-lmu/pull/41
 
 0.3.1 (November 16, 2020)
 =========================

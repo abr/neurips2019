@@ -7,7 +7,7 @@ a release version. Release versions are git tagged with the version.
 """
 
 name = "keras_lmu"
-version_info = (0, 3, 2)  # (major, minor, patch)
+version_info = (0, 4, 0)  # (major, minor, patch)
 dev = 0  # set to None for releases
 
 version = (
