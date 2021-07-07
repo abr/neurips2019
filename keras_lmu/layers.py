@@ -527,6 +527,10 @@ class LMUFFT(tf.keras.layers.Layer):
         The method for performing the inpulse response convolution. "fft" uses FFT
         convolution (default). "raw" uses explicit convolution, which may be faster
         for particular models on particular hardware.
+    truncate_ir : float
+        The portion of the impulse response to truncate when using "raw" convolution
+        (see ``conv_mode``). This is an approximate upper bound on the error relative
+        to the exact implementation.
     """
 
     def __init__(
@@ -540,6 +544,7 @@ class LMUFFT(tf.keras.layers.Layer):
         dropout=0,
         return_sequences=False,
         conv_mode="fft",
+        truncate_ir=1e-4,
         **kwargs,
     ):
         super().__init__(**kwargs)
@@ -556,6 +561,7 @@ class LMUFFT(tf.keras.layers.Layer):
         self.dropout = dropout
         self.return_sequences = return_sequences
         self.conv_mode = conv_mode.lower()
+        self.truncate_ir = truncate_ir
 
         # create a standard LMUCell to generate the impulse response during `build`
         self.delay_layer = tf.keras.layers.RNN(
@@ -604,6 +610,17 @@ class LMUFFT(tf.keras.layers.Layer):
             tf.transpose(self.impulse_response),
             fft_length=[2 * seq_len],
         )
+
+        if self.truncate_ir is not None:
+            ir = self.impulse_response.numpy()
+            assert ir.shape == (seq_len, self.order)
+
+            cumsum = np.cumsum(np.abs(ir[::-1]), axis=0)
+            cumsum = cumsum / cumsum[-1]
+            to_drop = (cumsum < self.truncate_ir).all(axis=-1)
+            if to_drop[0].item():
+                i = to_drop.nonzero()[0][-1]
+                self.impulse_response = self.impulse_response[: -(i + 1)]
 
         if self.kernel_initializer is not None:
             self.kernel = self.add_weight(
@@ -701,13 +718,14 @@ class LMUFFT(tf.keras.layers.Layer):
 
     def _raw_convolution(self, u):
         seq_len = tf.shape(u)[1]
+        ir_len = self.impulse_response.shape[0]
         assert self.impulse_response.shape[1:] == (self.order,)
 
         u = tf.transpose(u, perm=[0, 2, 1])
         u = tf.reshape(u, (-1, 1, 1, seq_len))  # combine batch and memory_d dimensions
-        filters = tf.reshape(self.impulse_response, (1, seq_len, 1, self.order))
+        filters = tf.reshape(self.impulse_response, (1, ir_len, 1, self.order))
         filters = filters[:, ::-1, :, :]
-        padding = [[0, 0], [0, 0], [0, 0], [seq_len - 1, 0]]
+        padding = [[0, 0], [0, 0], [0, 0], [ir_len - 1, 0]]
         m = tf.nn.conv2d(u, filters, strides=1, data_format="NCHW", padding=padding)
         m = tf.reshape(m, (-1, self.memory_d * self.order, seq_len))
 

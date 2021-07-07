@@ -216,6 +216,31 @@ def test_fft(return_sequences, hidden_cell, memory_d, conv_mode, rng):
     assert np.allclose(rnn_out, fft_out, atol=2e-6)
 
 
+@pytest.mark.parametrize("truncate_ir", [None, 1e-5, 1e-4, 1e-3])
+def test_raw_truncation(truncate_ir, rng):
+    seq_len = 64
+    theta = 11.2
+    kwargs = dict(
+        memory_d=4, order=4, theta=theta, hidden_cell=None, kernel_initializer=None
+    )
+
+    x = rng.uniform(-1, 1, size=(2, seq_len, kwargs["memory_d"]))
+
+    rnn_layer = tf.keras.layers.RNN(layers.LMUCell(**kwargs), return_sequences=True)
+    rnn_out = rnn_layer(x)
+
+    fft_layer = layers.LMUFFT(
+        return_sequences=True, conv_mode="raw", truncate_ir=truncate_ir, **kwargs
+    )
+    fft_out = fft_layer(x)
+    if truncate_ir is not None:
+        assert fft_layer.impulse_response.shape[0] < seq_len
+
+    # only one seed in 50 failed with `atol=truncate_ir`, hence the 1.2 fudge factor
+    atol = 2e-6 if truncate_ir is None else 1.2 * truncate_ir
+    assert np.allclose(rnn_out, fft_out, atol=atol)
+
+
 def test_validation_errors():
     fft_layer = layers.LMUFFT(1, 2, 3, None)
     with pytest.raises(ValueError, match="temporal axis be fully specified"):
