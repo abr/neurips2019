@@ -523,6 +523,10 @@ class LMUFFT(tf.keras.layers.Layer):
     return_sequences : bool, optional
         If True, return the full output sequence. Otherwise, return just the last
         output in the output sequence.
+    conv_mode : "fft" or "raw"
+        The method for performing the inpulse response convolution. "fft" uses FFT
+        convolution (default). "raw" uses explicit convolution, which may be faster
+        for particular models on particular hardware.
     """
 
     def __init__(
