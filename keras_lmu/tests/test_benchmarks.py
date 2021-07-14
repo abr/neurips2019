@@ -1,5 +1,7 @@
 # pylint: disable=missing-docstring
 
+import subprocess
+import sys
 import timeit
 
 import numpy as np
@@ -7,6 +9,20 @@ import pytest
 import tensorflow as tf
 
 from keras_lmu import layers
+
+# check if GPU support is available
+# note: we run this in a subprocess because list_physical_devices()
+# will fix certain process-level TensorFlow configuration
+# options the first time it is called
+tf_gpu_installed = not subprocess.call(
+    [
+        sys.executable,
+        "-c",
+        "import sys; "
+        "import tensorflow as tf; "
+        "sys.exit(len(tf.config.list_physical_devices('GPU')) == 0)",
+    ]
+)
 
 
 class SteptimeLogger(tf.keras.callbacks.Callback):
@@ -42,6 +58,7 @@ class SteptimeLogger(tf.keras.callbacks.Callback):
         self.batch_times.append(timeit.default_timer() - self.batch_start)
 
 
+@pytest.mark.skipif(not tf_gpu_installed, reason="Very slow on CPU")
 @pytest.mark.parametrize("mode", ["rnn", "fft", "raw"])
 def test_performance(mode, capsys):
     dims = 32
