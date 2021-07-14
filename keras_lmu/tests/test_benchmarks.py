@@ -1,3 +1,5 @@
+# pylint: disable=missing-docstring
+
 import timeit
 
 import numpy as np
@@ -73,7 +75,6 @@ def test_performance(mode, capsys):
     )
 
     steptimes = SteptimeLogger()
-    callbacks = [steptimes]
     model.fit(x_train, y_train, epochs=2, batch_size=batch_size, callbacks=[steptimes])
 
     step_time = np.mean(steptimes.batch_times[1:])
