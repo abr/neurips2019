@@ -97,7 +97,7 @@ def test_layer_vs_cell(has_input_kernel, fft, rng):
     ):
         assert np.allclose(w0.numpy(), w1.numpy())
 
-    atol = 2e-6 if fft else 1e-8
+    atol = 3e-6 if fft else 1e-8
     assert np.allclose(cell_out, lmu_cell(inp), atol=atol)
     assert np.allclose(cell_out, layer_out, atol=atol)
 
