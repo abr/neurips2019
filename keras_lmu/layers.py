@@ -672,7 +672,7 @@ class LMUFFT(tf.keras.layers.Layer):
 
         if self.conv_mode == "fft":
             m = self._fft_convolution(u)
-        elif self.conv_mode.startswith("raw"):
+        elif self.conv_mode in ("raw", "raw_nchw"):
             m = self._raw_convolution(u)
         else:
             raise NotImplementedError(f"Unimplemented conv mode '{self.conv_mode}'")
@@ -727,7 +727,7 @@ class LMUFFT(tf.keras.layers.Layer):
         filters = tf.reshape(self.impulse_response, (1, ir_len, 1, self.order))
         filters = filters[:, ::-1, :, :]
 
-        if self.conv_mode == "raw_nchw":
+        if self.conv_mode == "raw_nchw":  # pragma: no cover
             u = tf.reshape(u, (-1, 1, 1, seq_len))  # combine batch and memory_d axes
             padding = [[0, 0], [0, 0], [0, 0], [ir_len - 1, 0]]
             m = tf.nn.conv2d(u, filters, strides=1, data_format="NCHW", padding=padding)
