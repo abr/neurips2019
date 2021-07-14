@@ -675,7 +675,7 @@ class LMUFFT(tf.keras.layers.Layer):
         elif self.conv_mode.startswith("raw"):
             m = self._raw_convolution(u)
         else:
-            raise ValueError(f"Unrecognized conv mode '{self.conv_mode}'")
+            raise NotImplementedError(f"Unimplemented conv mode '{self.conv_mode}'")
 
         # apply hidden cell
         h_in = tf.concat((m, inputs), axis=-1) if self.input_to_hidden else m
